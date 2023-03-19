@@ -13,6 +13,9 @@ program
 	.alias('f')
 
 // program
+// .command()
+
+// program
 //   .command('install [name]', 'install one or more packages').alias('i')
 //   .command('search [query]', 'search with optional query').alias('s')
 //   .command('update', 'update installed packages', { executableFile: 'myUpdateSubCommand' })
