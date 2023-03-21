@@ -17,6 +17,9 @@ export const endYearOption = new Option('-e, --end-year <year>', 'end year for t
 	.argParser(toYear)
 	.conflicts('forYears')
 
-export const clubOption = new Option('-c, --club <teams...>', 'only include specific clubs')
+export const clubOption = new Option('-c, --clubs <clubs...>', 'only include specific clubs')
 	.default([])
 	.argParser(toClubs)
+
+export const forceUpdate = new Option('-f, --force', 'force the operation to download data from the web instead of using locally cached versions')
+	.default(false)

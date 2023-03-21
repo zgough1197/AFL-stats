@@ -1,14 +1,14 @@
-export const getAllForYearRange = (years: number[]): string[] => {
-	return years.map(getAllForYear)
+import axios from 'axios'
+import { URL } from 'url'
+
+export const getPage = async (url: URL): Promise<string> => {
+	const res = await axios.get(url.href)
+
+	const d = res.data
+
+	if (typeof d !== 'string') {
+		throw new Error(`fetch return was expected to be string, instead got ${typeof d}`)
+	}
+
+	return d
 }
-
-export const getAllForYear = (year: number) => {
-	return getPage(`www.afltables.com/${year}`)
-}
-
-const getPage = (url: string): string => {
-	console.log(url)
-
-	return 'test'
-}
-

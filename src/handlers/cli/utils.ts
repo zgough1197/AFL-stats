@@ -1,5 +1,5 @@
 import { InvalidArgumentError } from '@commander-js/extra-typings'
-import { ClubName } from '../../consts'
+import { ClubName } from '../../types'
 
 const minYear = 1965
 const maxYear = 2022
