@@ -1,138 +1,109 @@
-import { ClubLink, ClubName } from './clubs'
-import { getPage } from '../handlers/http'
-import { URL } from 'url'
-import { Txt } from './fs'
-import { Player, PlayerLink } from './players'
+import { CacheData, CacheHandler, YearCacheHandler } from '../handlers/fs/cache'
+import { FetchHandler } from '../handlers/http/fetch'
+import { HasChildrenWithStatus } from '../handlers/types'
+import { YearClub, ClubName } from './clubs'
+import { YearPlayer } from './players'
 
-interface INameId {
-	id: string
-	name: string
-}
+abstract class Page extends HasChildrenWithStatus {
+	protected static readonly baseUrl: string = 'https://afltables.com/'
 
-abstract class Page {
-	private static readonly baseUrl: string = 'https://afltables.com/'
+	protected abstract fetch: FetchHandler
+	protected abstract cache: CacheHandler<CacheData>
 
-	private readonly url: URL
-	private readonly fKey: Txt
-
-	constructor(u: string, f: Txt) {
-		this.url = new URL(u, Page.baseUrl)
-		this.fKey = f
+	async load(forceOnlineUpdate = false): Promise<void> {
+		return this.whenReady(() => this.doLoad(forceOnlineUpdate))
 	}
 
-	async init(force = false): Promise<void> {
-		if (force || !this.isCached) {
-			const d = await getPage(this.url)
-
-			await this.fromWeb(d)
-
-			await this.saveCache()
-		} else {
-			await this.loadCache()
+	private async doLoad(force: boolean): Promise<void> {
+		if (force || !this.cache.isCached) {
+			await this.fetch.get()
 		}
+
+		return this.parse()
 	}
 
-	protected get isCached() {
-		return this.fKey.exists
-	}
-
-	protected nameIdToCache(i: INameId[]): string {
-		return i.map((o) => `${o.id}:${o.name}`).join(';')
-	}
-
-	protected nameIdFromCache(i: string): INameId[] {
-		const e = i.split(';')
-
-		return e.map((s) => {
-			const [ id, name ] = s.split(':')
-
-			return {
-				id,
-				name
-			}
-		})
-	}
-
-	protected abstract saveCache(): Promise<void>
-
-	protected async saveTxt(d: string): Promise<void> {
-		this.fKey.save(d)
-	}
-
-	protected abstract loadCache(): Promise<void>
-
-	protected async loadTxt(): Promise<string> {
-		return this.fKey.load()
-	}
-
-	protected abstract fromWeb(d: string): Promise<void>
+	protected abstract parse(): Promise<void>
 }
 
 export class YearPage extends Page {
-	private static teamLinkRegex = /<a href="[^"<>]*?teams\/[^"<>]*?([^"<>/]+?)_idx.html">([a-z ,-]*?)<\/a>/gmi
+	private static tableRegex = /<table[^>]*?>.*?<tbody[^>]*>(.*?)<\/tbody>.*?<\/table>/gmi
+	private static teamLinkRegex = /<a href="[^"<>]*?teams\/[^"<>]*?([^"<>/]+?)_idx.html">([a-z ,-]*?)<\/a>/mi
 	private static playerLinkRegex = /<a href="[^"<>]*?players\/[^"<>]*?([^"<>/]+?).html">([a-z ,-]*?)<\/a>/gmi
+
+	protected override fetch: FetchHandler
+	protected override cache: YearCacheHandler
 
 	readonly year: number
 
-	private readonly c: ClubLink[] = []
-	private readonly p: PlayerLink[] = []
+	readonly clubs: YearClub[] = []
+	readonly players: YearPlayer[] = []
 
 	constructor(year: number) {
-		super(`/afl/stats/${year}.html`, new Txt('raw/year', String(year)))
+		super()
+
+		this.fetch = new FetchHandler(Page.baseUrl, `/afl/stats/${year}.html`)
+		this.cache = new YearCacheHandler(year)
 
 		this.year = year
 	}
 
-	protected override async saveCache(): Promise<void> {
-		const o: string[] = [
-			this.nameIdToCache(this.c),
-			this.nameIdToCache(this.p)
-		]
+	protected override async parse(): Promise<void> {
+		if (this.clubs.length > 0 || this.players.length > 0) throw new Error('was asked to parse new data but it already exists, year: ' + String(this.year))
 
-		this.saveTxt(o.join('\n'))
-	}
+		if (this.fetch.data) {
+			const d = this.fetch.data
 
-	protected override async loadCache(): Promise<void> {
-		if (this.c.length > 0 || this.p.length > 0) return
+			const tableMatches = d.matchAll(YearPage.tableRegex)
 
-		const d = await this.loadTxt()
+			for (const tm of tableMatches) {
+				const clubMatch = tm[0].match(YearPage.teamLinkRegex)
 
-		const [ c, p ] = d.split('\n').map(this.nameIdFromCache)
+				if (!clubMatch) throw new Error('could not find name of club in discovered table, year: ' + String(this.year))
 
-		const cl = c.map((c) => ClubLink.fromStringAndId(c.id, c.name))
-		const pl = p.map((p) => PlayerLink.fromStringAndId(p.id, p.name))
+				const club = ClubName.fromString(clubMatch[2])
 
-		this.c.push(...cl)
-		this.p.push(...pl)
-	}
+				if (!club) throw new Error('could not find valid name of club in discovered table, string: ' + clubMatch[2])
 
-	protected override async fromWeb(d: string): Promise<void> {
-		if (this.c.length > 0 || this.p.length > 0) return
+				this.clubs.push(new YearClub(club, clubMatch[1]))
 
-		const cm = this.matchesFrom(YearPage.teamLinkRegex, d, ClubLink.fromStringAndId)
-		const pm = this.matchesFrom(YearPage.playerLinkRegex, d, PlayerLink.fromStringAndId)
+				const playerMatches = tm[1].matchAll(YearPage.playerLinkRegex)
 
-		this.c.push(...cm)
-		this.p.push(...pm)
-	}
+				for (const pm of playerMatches) {
+					this.players.push(new YearPlayer(pm[2], pm[1], club))
+				}
+			}
 
-	private matchesFrom<T extends ClubLink|PlayerLink>(r: RegExp, s: string, parser: (id: string, name: string) => T): T[] {
-		const ms = s.matchAll(r)
+			this.cache.setData({
+				clubs: this.clubs.map((c) => ({
+					id: c.id,
+					n: c.name
+				})),
+				players: this.players.map((p) => ({
+					clubForYear: p.club.toString(),
+					id: p.id,
+					n: p.name
+				}))
+			})
+		} else {
+			const d = this.cache.data
 
-		const o: T[] = []
+			if (!d) throw new Error('attempted to get data from cache but found none, year: ' + String(this.year))
 
-		for (const m of ms) {
-			o.push(parser(m[1], m[2]))
+			d.clubs.forEach((c) => {
+				const clubName = ClubName.fromString(c.n)
+
+				if (!clubName) throw new Error(`could not get valid club name from cache, record: id: ${c.id}, name: ${c.n}`)
+
+				this.clubs.push(new YearClub(clubName, c.id))
+			})
+
+			d?.players.forEach((p) => {
+				const clubName = ClubName.fromString(p.clubForYear)
+
+				if (!clubName) throw new Error(`could not get valid club name from cache, record: id: ${p.id}, name: ${p.n}, club: ${p.clubForYear}`)
+
+				this.players.push(new YearPlayer(p.n, p.id, clubName))
+			})
 		}
-
-		return o
-	}
-
-	get clubs(): ClubName[] {
-		return this.c
-	}
-
-	get players(): Player[] {
-		return this.p
 	}
 }

@@ -2,7 +2,7 @@ import { existsSync } from 'fs'
 import { writeFile, mkdir, readFile } from 'fs/promises'
 import path from 'path'
 
-const outputDir = '../../data'
+const outputDir = '../../../data'
 
 export const txtFileExists = (k: Txt): boolean => existsSync(k.loc)
 

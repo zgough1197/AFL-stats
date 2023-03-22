@@ -1,3 +1,3 @@
-import { parse } from './handlers/cli'
+import { parse } from './cli'
 
 parse()

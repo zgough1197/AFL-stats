@@ -4,14 +4,36 @@
 		{
 			"type": "node",
 			"request": "launch",
-			"name": "Launch Program",
+			"name": "Fetch 2022",
 			"skipFiles": [
 				"<node_internals>/**"
 			],
-			"program": "${workspaceFolder}/src/handlers/cli/commands/fetch.ts",
+			"program": "${workspaceFolder}/src/main.ts",
 			"preLaunchTask": "tsc: build - tsconfig.json",
 			"outFiles": [
 				"${workspaceFolder}/build/**/*.js"
+			],
+			"args": [
+				"fetch",
+				"-y", "2022"
+			]
+		},
+		{
+			"type": "node",
+			"request": "launch",
+			"name": "Fetch 2022 - force online",
+			"skipFiles": [
+				"<node_internals>/**"
+			],
+			"program": "${workspaceFolder}/src/main.ts",
+			"preLaunchTask": "tsc: build - tsconfig.json",
+			"outFiles": [
+				"${workspaceFolder}/build/**/*.js"
+			],
+			"args": [
+				"fetch",
+				"-y", "2022",
+				"-f"
 			]
 		}
 	]

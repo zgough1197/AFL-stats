@@ -206,6 +206,10 @@ export class ClubName {
 		return this.n
 	}
 
+	toString(): string {
+		return String(this.n)
+	}
+
 	is(searchTerm: string|ClubName) {
 		const a = ClubName.aliases[this.name]
 		const n = this.name
@@ -222,19 +226,13 @@ export class ClubName {
 	}
 }
 
-export class ClubLink extends ClubName {
-	static fromStringAndId(id: string, name: string): ClubLink {
-		const n = ClubLink.getMatch(name)
-
-		if (!n) throw new Error('invalid ')
-
-		return new ClubLink(n, id)
-	}
-
+export class YearClub extends ClubName {
 	readonly id: string
 
-	protected constructor(cn: CLUB_NAME, id: string) {
-		super(cn)
+	constructor(cn: ClubName, id: string)
+	constructor(cn: CLUB_NAME, id: string)
+	constructor(a: CLUB_NAME|ClubName, id: string) {
+		super(a instanceof ClubName ? a.name : a)
 
 		this.id = id
 	}

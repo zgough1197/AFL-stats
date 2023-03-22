@@ -1,3 +1,5 @@
+import { ClubName } from './clubs'
+
 interface IPlayerName {
 	name: string
 	firstName: string
@@ -36,16 +38,14 @@ export class Player implements IPlayerName {
 	}
 }
 
-export class PlayerLink extends Player {
-	static fromStringAndId(id: string, name: string): PlayerLink {
-		return new PlayerLink(name, id)
-	}
-
+export class YearPlayer extends Player {
 	readonly id: string
+	readonly club: ClubName
 
-	protected constructor(n: string, id: string) {
+	constructor(n: string, id: string, club: ClubName) {
 		super(n)
 
 		this.id = id
+		this.club = club
 	}
 }

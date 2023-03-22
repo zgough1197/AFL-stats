@@ -1,6 +1,6 @@
 import { Command, InvalidArgumentError } from '@commander-js/extra-typings'
 import { clubOption, endYearOption, forYearOption, forceUpdate, startYearOption } from '../components/options'
-import { ClubName, YearPage } from '../../../types'
+import { ClubName, YearPage } from '../../types'
 
 const program = new Command()
 	.addOption(forYearOption)
@@ -25,7 +25,7 @@ program.action(({ startYear, endYear, years = [], clubs = [], force }) => {
 	const yearPages = years.map((y) => new YearPage(y))
 
 	yearPages.forEach(async (yp) => {
-		await yp.init(force)
+		await yp.load(force)
 
 		const clubLinks = yp.clubs.filter((c) => c.isOneOf(clubs))
 
