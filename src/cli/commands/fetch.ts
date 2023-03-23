@@ -22,14 +22,17 @@ program.action(({ startYear, endYear, years = [], clubs = [], force }) => {
 		clubs.push(...ClubName.getAll())
 	}
 
-	const yearPages = years.map((y) => new YearPage(y))
+	const yearPages: YearPage[] = years.map((y) => new YearPage(y))
 
-	yearPages.forEach(async (yp) => {
+	yearPages.forEach(async (yp: YearPage): Promise<void> => {
 		await yp.load(force)
 
-		const clubLinks = yp.clubs.filter((c) => c.isOneOf(clubs))
+		const yearClubs = yp.clubs.filter((c) => c.isOneOf(clubs))
 
-		console.log(clubLinks.map((c) => c.name + ' ' + yp.year))
+		const yearPlayers = yp.players.filter((c) => c.club.isOneOf(clubs))
+
+		console.log(yearClubs.map((c) => c.name + ' ' + yp.year))
+		console.log(yearPlayers.map((c) => c.fullName + ' ' + yp.year))
 	})
 })
 

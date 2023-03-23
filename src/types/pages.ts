@@ -2,7 +2,7 @@ import { CacheData, CacheHandler, YearCacheHandler } from '../handlers/fs/cache'
 import { FetchHandler } from '../handlers/http/fetch'
 import { HasChildrenWithStatus } from '../handlers/types'
 import { YearClub, ClubName } from './clubs'
-import { YearPlayer } from './players'
+import { YearPlayer } from './players/players'
 
 abstract class Page extends HasChildrenWithStatus {
 	protected static readonly baseUrl: string = 'https://afltables.com/'
@@ -60,9 +60,7 @@ export class YearPage extends Page {
 
 				if (!clubMatch) throw new Error('could not find name of club in discovered table, year: ' + String(this.year))
 
-				const club = ClubName.fromString(clubMatch[2])
-
-				if (!club) throw new Error('could not find valid name of club in discovered table, string: ' + clubMatch[2])
+				const club = new ClubName(clubMatch[2])
 
 				this.clubs.push(new YearClub(club, clubMatch[1]))
 
@@ -81,7 +79,7 @@ export class YearPage extends Page {
 				players: this.players.map((p) => ({
 					clubForYear: p.club.toString(),
 					id: p.id,
-					n: p.name
+					n: p.toCacheFormat()
 				}))
 			})
 		} else {
@@ -90,15 +88,11 @@ export class YearPage extends Page {
 			if (!d) throw new Error('attempted to get data from cache but found none, year: ' + String(this.year))
 
 			d.clubs.forEach((c) => {
-				const clubName = ClubName.fromString(c.n)
-
-				if (!clubName) throw new Error(`could not get valid club name from cache, record: id: ${c.id}, name: ${c.n}`)
-
-				this.clubs.push(new YearClub(clubName, c.id))
+				this.clubs.push(new YearClub(c.n, c.id))
 			})
 
 			d?.players.forEach((p) => {
-				const clubName = ClubName.fromString(p.clubForYear)
+				const clubName = new ClubName(p.clubForYear)
 
 				if (!clubName) throw new Error(`could not get valid club name from cache, record: id: ${p.id}, name: ${p.n}, club: ${p.clubForYear}`)
 

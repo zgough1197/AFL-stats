@@ -23,13 +23,7 @@ export const toYears = (v: string, p: number[] = []): number[] => {
 }
 
 export const toClub = (v: string): ClubName => {
-	const c = ClubName.fromString(v)
-
-	if (!c) {
-		throw new InvalidArgumentError('club string was not recognised')
-	}
-
-	return c
+	return new ClubName(v)
 }
 
 export const toClubs = (v: string, p: ClubName[] = []): ClubName[] => {
