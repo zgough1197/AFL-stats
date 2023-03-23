@@ -1,31 +1,29 @@
 import { InvalidArgumentError } from '@commander-js/extra-typings'
-import { ClubName } from '../types'
 
-const minYear = 1965
-const maxYear = 2022
 
-export const toYear = (v: string): number => {
-	const n = parseInt(v)
+export const minYear = 1965
+export const maxYear = 2022
 
-	if (isNaN(n)) {
-		throw new InvalidArgumentError('Year was not a valid number')
+const validYear = (y: number): boolean => {
+	return y < maxYear && y > minYear
+}
+
+export const toYearsList = (s: number, e: number, f?: number[]): number[] => {
+	const years = f ? f.filter(validYear) : []
+
+	if (years.length > 0) {
+		if (f && f.length > years.length) console.log('some years supplied were outside of the acceptable range (1965-2022), only using: ' + years.join(', '))
+
+		return years.sort()
 	}
 
-	if (n > maxYear || n < minYear) {
-		throw new InvalidArgumentError(`Year was outside of allowed range. Must be between ${minYear} and ${maxYear}`)
+	if (f && f.length > 0) console.log('some years supplied were outside of the acceptable range (1965-2022), defaulting to 1990-2022')
+
+	if (s > e) throw new InvalidArgumentError('the start year must come before the end year')
+
+	for (let y = s; y <= e; y++) {
+		years.push(y)
 	}
 
-	return n
-}
-
-export const toYears = (v: string, p: number[] = []): number[] => {
-	return p.concat(toYear(v)).sort()
-}
-
-export const toClub = (v: string): ClubName => {
-	return new ClubName(v)
-}
-
-export const toClubs = (v: string, p: ClubName[] = []): ClubName[] => {
-	return p.concat(toClub(v)).sort()
+	return years
 }

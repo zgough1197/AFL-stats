@@ -9,8 +9,7 @@ program
 	.executableDir('./cli/commands')
 
 program
-	.command('fetch', 'fetch data from afltables.com', { executableFile: 'fetch' })
-	.alias('f')
+	.command('update', 'cache data from afltables.com locally', { executableFile: 'update' })
 
 
 export const parse = () => {

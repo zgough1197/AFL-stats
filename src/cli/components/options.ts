@@ -1,5 +1,5 @@
 import { Option } from '@commander-js/extra-typings'
-import { toClubs, toYear, toYears } from '../utils'
+import { toClubs, toYear, toYears } from '../parsers'
 
 const deafultStartYear = 1990
 const defaultEndYear = 2022
@@ -18,7 +18,6 @@ export const endYearOption = new Option('-e, --end-year <year>', 'end year for t
 	.conflicts('forYears')
 
 export const clubOption = new Option('-c, --clubs <clubs...>', 'only include specific clubs')
-	.default([])
 	.argParser(toClubs)
 
 export const forceUpdate = new Option('-f, --force', 'force the operation to download data from the web instead of using locally cached versions')
