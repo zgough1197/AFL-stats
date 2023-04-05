@@ -1,6 +1,6 @@
 import { InvalidArgumentError } from '@commander-js/extra-typings'
 import { ClubName } from '../types'
-import { maxYear, minYear } from './utils'
+import { maxYear, minYear } from '../utils'
 
 export const toYear = (v: string): number => {
 	const n = parseInt(v)

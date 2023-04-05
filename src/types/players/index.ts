@@ -1,2 +1,2 @@
-export * from './names'
-export * from './players'
+export * from './name'
+export * from './year'

@@ -1,4 +1,4 @@
-import { ClubName } from './names'
+import { ClubName } from './name'
 
 export class YearClub extends ClubName {
 	readonly id: string

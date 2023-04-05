@@ -1,16 +1,20 @@
 type NameFormat = 'cache' | 'web' | 'invalid'
 
-interface IPlayerName {
+interface HasPlayerName {
+	id: string
 	firstName: string
 	lastName: string
 	fullName: string
 }
 
-export class PlayerName implements IPlayerName {
+export class PlayerName implements HasPlayerName {
+	readonly id: string
 	readonly firstName: string
 	readonly lastName: string
 
-	constructor(n: string) {
+	constructor(id: string, n: string) {
+		this.id = id
+
 		const format: NameFormat = n.split(/,|_/).length !== 2 ? 'invalid' : n.split(',').length === 2 ? 'web' : n.split('_').length === 2 ? 'cache' : 'invalid'
 
 		let f: string

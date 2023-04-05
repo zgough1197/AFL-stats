@@ -1,6 +1,7 @@
 {
 	"version": "0.2.0",
 	"configurations": [
+	
 		{
 			"type": "node",
 			"request": "launch",
@@ -15,7 +16,8 @@
 			],
 			"args": [
 				"update",
-				"-y", "2022"
+				"-y", "2022",
+				"-c", "cw"
 			]
 		},
 		{
@@ -33,7 +35,8 @@
 			"args": [
 				"update",
 				"-y", "2022",
-				"-f"
+				"-f",
+				"-c", "cw"
 			]
 		}
 	]
